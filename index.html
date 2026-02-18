@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
+		<title>VIP视频解析</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			:root {
+				--primary: #6366f1;
+				--primary-dark: #4f46e5;
+				--secondary: #ec4899;
+				--bg: #0f172a;
+				--surface: #1e293b;
+				--text: #f8fafc;
+				--text-secondary: #94a3b8;
+				--border: #334155;
+				--danger: #ef4444;
+			}
+
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+				background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+				min-height: 100vh;
+				color: var(--text);
+				overflow-x: hidden;
+				position: relative;
+			}
+
+			/* 动态背景 */
+			.bg-animation {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				z-index: -1;
+			}
+
+			.bg-animation::before {
+				content: '';
+				position: absolute;
+				width: 200%;
+				height: 200%;
+				background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+				animation: float 20s infinite ease-in-out;
+			}
+
+			@keyframes float {
+
+				0%,
+				100% {
+					transform: translate(-10%, -10%) rotate(0deg);
+				}
+
+				50% {
+					transform: translate(10%, 10%) rotate(180deg);
+				}
+			}
+
+			.container {
+				max-width: 600px;
+				margin: 0 auto;
+				padding: 20px;
+				min-height: 100vh;
+				display: flex;
+				flex-direction: column;
+			}
+
+			/* 头部 */
+			header {
+				text-align: center;
+				padding: 40px 0 30px;
+				position: relative;
+			}
+
+			.logo {
+				font-size: 2.5rem;
+				font-weight: 800;
+				background: linear-gradient(135deg, #6366f1, #ec4899);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+				margin-bottom: 10px;
+				letter-spacing: -1px;
+			}
+
+			.subtitle {
+				color: var(--text-secondary);
+				font-size: 0.9rem;
+			}
+
+			/* 输入区域 */
+			.input-section {
+				background: rgba(30, 41, 59, 0.8);
+				backdrop-filter: blur(20px);
+				border: 1px solid var(--border);
+				border-radius: 24px;
+				padding: 25px;
+				margin-bottom: 25px;
+				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+				transition: transform 0.3s ease, box-shadow 0.3s ease;
+			}
+
+			.input-section:focus-within {
+				transform: translateY(-2px);
+				box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.25);
+				border-color: var(--primary);
+			}
+
+			.input-group {
+				position: relative;
+				margin-bottom: 20px;
+			}
+
+			.input-label {
+				display: block;
+				margin-bottom: 10px;
+				font-size: 0.9rem;
+				color: var(--text-secondary);
+				font-weight: 500;
+			}
+
+			.input-wrapper {
+				display: flex;
+				gap: 10px;
+				align-items: stretch;
+			}
+
+			input[type="text"] {
+				flex: 1;
+				background: rgba(15, 23, 42, 0.6);
+				border: 2px solid var(--border);
+				border-radius: 12px;
+				padding: 14px 18px;
+				color: var(--text);
+				font-size: 1rem;
+				transition: all 0.3s ease;
+				outline: none;
+				min-width: 0;
+			}
+
+			input[type="text"]:focus {
+				border-color: var(--primary);
+				background: rgba(15, 23, 42, 0.8);
+				box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+			}
+
+			input[type="text"]::placeholder {
+				color: #64748b;
+			}
+
+			.btn-icon {
+				width: 48px;
+				height: 48px;
+				border: none;
+				background: var(--surface);
+				border-radius: 12px;
+				color: var(--text-secondary);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: all 0.3s ease;
+				flex-shrink: 0;
+			}
+
+			.btn-icon:hover {
+				background: #ef4444;
+				color: white;
+				transform: scale(1.05);
+			}
+
+			.btn-primary {
+				width: 100%;
+				padding: 16px;
+				border: none;
+				border-radius: 12px;
+				background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+				color: white;
+				font-size: 1.1rem;
+				font-weight: 600;
+				cursor: pointer;
+				position: relative;
+				overflow: hidden;
+				transition: all 0.3s ease;
+				box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+			}
+
+			.btn-primary:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+			}
+
+			.btn-primary:active {
+				transform: translateY(0);
+			}
+
+			.btn-primary::after {
+				content: '';
+				position: absolute;
+				top: -50%;
+				left: -50%;
+				width: 200%;
+				height: 200%;
+				background: linear-gradient(45deg,
+						transparent,
+						rgba(255, 255, 255, 0.1),
+						transparent);
+				transform: rotate(45deg);
+				transition: all 0.5s;
+			}
+
+			.btn-primary:hover::after {
+				left: 100%;
+			}
+
+			/* 平台按钮区域 */
+			.platforms-section {
+				margin-bottom: 25px;
+			}
+
+			.section-title {
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				margin-bottom: 15px;
+				text-transform: uppercase;
+				letter-spacing: 1px;
+				font-weight: 600;
+			}
+
+			.platforms-grid {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 12px;
+			}
+
+			.platform-btn {
+				background: rgba(30, 41, 59, 0.6);
+				border: 1px solid var(--border);
+				border-radius: 16px;
+				padding: 20px 10px;
+				text-align: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.platform-btn::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05));
+				opacity: 0;
+				transition: opacity 0.3s;
+			}
+
+			.platform-btn:hover::before {
+				opacity: 1;
+			}
+
+			.platform-btn:hover {
+				transform: translateY(-3px);
+				border-color: var(--primary);
+				box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+			}
+
+			.platform-icon {
+				font-size: 2rem;
+				margin-bottom: 8px;
+				display: block;
+			}
+
+			.platform-name {
+				font-size: 0.85rem;
+				font-weight: 600;
+				color: var(--text);
+			}
+
+			/* 特定平台颜色 */
+			.platform-btn.iqiyi:hover {
+				border-color: #00be06;
+				box-shadow: 0 10px 30px rgba(0, 190, 6, 0.2);
+			}
+
+			.platform-btn.tencent:hover {
+				border-color: #00c800;
+				box-shadow: 0 10px 30px rgba(0, 200, 0, 0.2);
+			}
+
+			.platform-btn.youku:hover {
+				border-color: #1e90ff;
+				box-shadow: 0 10px 30px rgba(30, 144, 255, 0.2);
+			}
+
+			/* 提示信息 */
+			.tips {
+				background: rgba(99, 102, 241, 0.1);
+				border-left: 4px solid var(--primary);
+				padding: 15px 20px;
+				border-radius: 0 12px 12px 0;
+				margin-top: auto;
+				margin-bottom: 20px;
+			}
+
+			.tips-text {
+				font-size: 0.9rem;
+				color: var(--text-secondary);
+				line-height: 1.5;
+			}
+
+			.tips-text strong {
+				color: var(--primary);
+			}
+
+			/* 页脚 */
+			footer {
+				text-align: center;
+				padding: 20px;
+				color: var(--text-secondary);
+				font-size: 0.8rem;
+			}
+
+			/* 加载动画 */
+			.loading {
+				display: none;
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(15, 23, 42, 0.9);
+				z-index: 1000;
+				justify-content: center;
+				align-items: center;
+				flex-direction: column;
+				backdrop-filter: blur(10px);
+			}
+
+			.loading.active {
+				display: flex;
+			}
+
+			.spinner {
+				width: 50px;
+				height: 50px;
+				border: 3px solid rgba(99, 102, 241, 0.3);
+				border-top-color: var(--primary);
+				border-radius: 50%;
+				animation: spin 1s linear infinite;
+				margin-bottom: 20px;
+			}
+
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+
+			.loading-text {
+				color: var(--text);
+				font-size: 1.1rem;
+			}
+
+			/* 响应式设计 */
+			@media (max-width: 480px) {
+				.container {
+					padding: 15px;
+				}
+
+				.logo {
+					font-size: 2rem;
+				}
+
+				.platforms-grid {
+					gap: 8px;
+				}
+
+				.platform-btn {
+					padding: 15px 5px;
+					border-radius: 12px;
+				}
+
+				.platform-icon {
+					font-size: 1.5rem;
+				}
+
+				.platform-name {
+					font-size: 0.75rem;
+				}
+			}
+
+			/* PWA 安装提示 */
+			.install-prompt {
+				display: none;
+				position: fixed;
+				bottom: 20px;
+				left: 50%;
+				transform: translateX(-50%);
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 16px;
+				padding: 16px 20px;
+				box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+				z-index: 999;
+				align-items: center;
+				gap: 15px;
+				animation: slideUp 0.3s ease;
+			}
+
+			.install-prompt.show {
+				display: flex;
+			}
+
+			@keyframes slideUp {
+				from {
+					transform: translate(-50%, 100%);
+					opacity: 0;
+				}
+
+				to {
+					transform: translate(-50%, 0);
+					opacity: 1;
+				}
+			}
+
+			.install-btn {
+				background: var(--primary);
+				color: white;
+				border: none;
+				padding: 8px 16px;
+				border-radius: 8px;
+				font-weight: 600;
+				cursor: pointer;
+				white-space: nowrap;
+			}
+
+			.close-prompt {
+				background: none;
+				border: none;
+				color: var(--text-secondary);
+				font-size: 1.2rem;
+				cursor: pointer;
+				padding: 0 5px;
+			}
+
+			/* 历史记录 - 新增样式 */
+			.history-section {
+				margin-top: 20px;
+				margin-bottom: 25px;
+				display: none;
+			}
+
+			.history-section.show {
+				display: block;
+			}
+
+			.history-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 15px;
+			}
+
+			.history-title {
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				text-transform: uppercase;
+				letter-spacing: 1px;
+				font-weight: 600;
+			}
+
+			.clear-history-btn {
+				background: rgba(239, 68, 68, 0.1);
+				border: 1px solid rgba(239, 68, 68, 0.3);
+				color: var(--danger);
+				padding: 6px 12px;
+				border-radius: 8px;
+				font-size: 0.75rem;
+				cursor: pointer;
+				transition: all 0.3s;
+				display: flex;
+				align-items: center;
+				gap: 4px;
+			}
+
+			.clear-history-btn:hover {
+				background: rgba(239, 68, 68, 0.2);
+				border-color: var(--danger);
+				transform: scale(1.05);
+			}
+
+			.history-list {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+			}
+
+			.history-item {
+				background: rgba(30, 41, 59, 0.6);
+				border: 1px solid var(--border);
+				border-radius: 12px;
+				padding: 12px 15px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				cursor: pointer;
+				transition: all 0.3s;
+				font-size: 0.85rem;
+			}
+
+			.history-item:hover {
+				background: rgba(99, 102, 241, 0.1);
+				border-color: var(--primary);
+				transform: translateX(5px);
+			}
+
+			.history-url {
+				color: var(--text);
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				max-width: 75%;
+				font-weight: 500;
+			}
+
+			.history-use {
+				color: var(--primary);
+				font-size: 0.75rem;
+				font-weight: 600;
+				display: flex;
+				align-items: center;
+				gap: 4px;
+			}
+
+			.empty-history {
+				text-align: center;
+				padding: 30px;
+				color: var(--text-secondary);
+				font-size: 0.9rem;
+				background: rgba(30, 41, 59, 0.4);
+				border-radius: 12px;
+				border: 1px dashed var(--border);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="bg-animation"></div>
+
+		<div class="loading" id="loading">
+			<div class="spinner"></div>
+			<div class="loading-text">正在解析视频...</div>
+		</div>
+
+		<div class="container">
+			<header>
+				<h1 class="logo">VIP视频解析</h1>
+				<p class="subtitle">全网VIP视频免费看</p>
+			</header>
+
+			<section class="input-section">
+				<div class="input-group">
+					<label class="input-label">视频链接</label>
+					<div class="input-wrapper">
+						<input type="text" id="videoUrl" placeholder="粘贴视频链接到这里..." autocomplete="off">
+						<button class="btn-icon" onclick="clearInput()" title="清空">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+								stroke-width="2">
+								<path d="M18 6L6 18M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+				</div>
+				<button class="btn-primary" onclick="playVideo()">
+					<span>播放VIP视频</span>
+				</button>
+			</section>
+
+			<section class="platforms-section">
+				<h3 class="section-title">快速访问</h3>
+				<div class="platforms-grid">
+					<div class="platform-btn iqiyi" onclick="openPlatform('https://www.iqiyi.com')">
+						<span class="platform-icon">🥝</span>
+						<span class="platform-name">爱奇艺</span>
+					</div>
+					<div class="platform-btn tencent" onclick="openPlatform('https://v.qq.com')">
+						<span class="platform-icon">🐧</span>
+						<span class="platform-name">腾讯视频</span>
+					</div>
+					<div class="platform-btn youku" onclick="openPlatform('https://www.youku.com')">
+						<span class="platform-icon">🎬</span>
+						<span class="platform-name">优酷视频</span>
+					</div>
+				</div>
+			</section>
+
+			<!-- 历史记录区域 - 新增清理按钮 -->
+			<section class="history-section" id="historySection">
+				<div class="history-header">
+					<h3 class="history-title">最近解析</h3>
+					<button class="clear-history-btn" onclick="clearAllHistory()" title="清空所有历史记录">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="2">
+							<path
+								d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+						</svg>
+						清空历史
+					</button>
+				</div>
+				<div class="history-list" id="historyList"></div>
+			</section>
+
+			<div class="tips">
+				<p class="tips-text">
+					<strong>使用提示：</strong>将视频链接复制到输入框内，点击播放按钮即可解析。支持爱奇艺、腾讯视频、优酷等主流平台。
+				</p>
+			</div>
+
+			<footer>
+				<p>仅供学习交流使用，请勿用于商业用途</p>
+			</footer>
+		</div>
+
+		<div class="install-prompt" id="installPrompt">
+			<span>添加到主屏幕，像APP一样使用</span>
+			<button class="install-btn" onclick="installPWA()">安装</button>
+			<button class="close-prompt" onclick="closePrompt()">×</button>
+		</div>
+
+		<script>
+			// 解析接口配置 - 注意：末尾不要有空格！
+			const API_URL = 'https://jx.xmflv.cc/?url=';
+
+			// 初始化
+			document.addEventListener('DOMContentLoaded', () => {
+				loadHistory();
+
+				// 回车键播放
+				document.getElementById('videoUrl').addEventListener('keypress', (e) => {
+					if (e.key === 'Enter') playVideo();
+				});
+
+				// 检测PWA安装
+				detectPWA();
+			});
+
+			// 播放视频 - 关键修复：不使用encodeURIComponent，直接拼接原始URL
+			function playVideo() {
+				const input = document.getElementById('videoUrl');
+				let url = input.value.trim();
+
+				if (!url) {
+					shakeElement(input);
+					showToast('请输入视频链接');
+					return;
+				}
+
+				// 自动补全http
+				if (!url.startsWith('http')) {
+					url = 'https://' + url;
+				}
+
+				// 关键修复：如果输入的是已经编码的URL（包含%），先解码
+				if (url.includes('%')) {
+					try {
+						url = decodeURIComponent(url);
+					} catch (e) {
+						console.log('解码失败，使用原始值');
+					}
+				}
+
+				// 关键修复：直接拼接，不使用encodeURIComponent
+				// 生成格式：https://jx.xmflv.cc/?url=https://v.qq.com/x/...
+				const parseUrl = API_URL + url;
+
+				// 保存到历史记录
+				saveToHistory(url);
+
+				// 显示加载
+				document.getElementById('loading').classList.add('active');
+
+				// 延迟打开（提升用户体验）
+				setTimeout(() => {
+					window.open(parseUrl, '_blank');
+					document.getElementById('loading').classList.remove('active');
+				}, 800);
+			}
+
+			// 清空输入
+			function clearInput() {
+				const input = document.getElementById('videoUrl');
+				input.value = '';
+				input.focus();
+			}
+
+			// 打开平台
+			function openPlatform(url) {
+				window.open(url, '_blank');
+			}
+
+			// 保存历史记录
+			function saveToHistory(url) {
+				let history = JSON.parse(localStorage.getItem('videoHistory') || '[]');
+				history = history.filter(item => item !== url);
+				history.unshift(url);
+				if (history.length > 10) history = history.slice(0, 10);
+				localStorage.setItem('videoHistory', JSON.stringify(history));
+				loadHistory();
+			}
+
+			// 加载历史记录
+			function loadHistory() {
+				const history = JSON.parse(localStorage.getItem('videoHistory') || '[]');
+				const section = document.getElementById('historySection');
+				const list = document.getElementById('historyList');
+
+				if (history.length === 0) {
+					section.classList.remove('show');
+					return;
+				}
+
+				section.classList.add('show');
+				list.innerHTML = history.map((url, index) => `
+                <div class="history-item" onclick="useHistory('${url}')">
+                    <span class="history-url">${url}</span>
+                    <span class="history-use">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        播放
+                    </span>
+                </div>
+            `).join('');
+			}
+
+			// 使用历史记录
+			function useHistory(url) {
+				document.getElementById('videoUrl').value = url;
+				playVideo();
+			}
+
+			// 清空所有历史记录 - 新增功能
+			function clearAllHistory() {
+				const history = JSON.parse(localStorage.getItem('videoHistory') || '[]');
+
+				if (history.length === 0) {
+					showToast('暂无历史记录');
+					return;
+				}
+
+				if (confirm(`确定要清空 ${history.length} 条历史记录吗？\n此操作不可恢复。`)) {
+					localStorage.removeItem('videoHistory');
+					loadHistory();
+					showToast('历史记录已清空');
+				}
+			}
+
+			// 抖动动画（错误提示）
+			function shakeElement(element) {
+				element.style.animation = 'shake 0.5s';
+				setTimeout(() => element.style.animation = '', 500);
+			}
+
+			// 显示提示
+			function showToast(message) {
+				const toast = document.createElement('div');
+				toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--surface);
+                color: var(--text);
+                padding: 12px 24px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                z-index: 10000;
+                font-size: 0.9rem;
+                animation: slideDown 0.3s ease;
+            `;
+				toast.textContent = message;
+				document.body.appendChild(toast);
+				setTimeout(() => toast.remove(), 2000);
+			}
+
+			// PWA 支持
+			let deferredPrompt;
+
+			function detectPWA() {
+				window.addEventListener('beforeinstallprompt', (e) => {
+					e.preventDefault();
+					deferredPrompt = e;
+					setTimeout(() => {
+						if (!window.matchMedia('(display-mode: standalone)').matches) {
+							document.getElementById('installPrompt').classList.add('show');
+						}
+					}, 3000);
+				});
+			}
+
+			function installPWA() {
+				if (deferredPrompt) {
+					deferredPrompt.prompt();
+					deferredPrompt.userChoice.then((choiceResult) => {
+						if (choiceResult.outcome === 'accepted') {
+							console.log('用户接受了安装');
+						}
+						deferredPrompt = null;
+						document.getElementById('installPrompt').classList.remove('show');
+					});
+				}
+			}
+
+			function closePrompt() {
+				document.getElementById('installPrompt').classList.remove('show');
+				localStorage.setItem('pwaPromptClosed', 'true');
+			}
+
+			// 添加CSS动画
+			const style = document.createElement('style');
+			style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+            @keyframes slideDown {
+                from { transform: translate(-50%, -100%); opacity: 0; }
+                to { transform: translate(-50%, 0); opacity: 1; }
+            }
+        `;
+			document.head.appendChild(style);
+
+			// 粘贴自动检测
+			document.addEventListener('paste', (e) => {
+				const text = e.clipboardData.getData('text');
+				if (text.includes('iqiyi.com') || text.includes('qq.com') || text.includes('youku.com')) {
+					setTimeout(() => {
+						showToast('检测到视频链接，点击播放即可解析');
+					}, 100);
+				}
+			});
+		</script>
+	</body>
+</html>
